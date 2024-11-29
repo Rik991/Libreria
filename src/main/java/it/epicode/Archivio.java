@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Archivio {
     private static final Logger logger = LoggerFactory.getLogger(Archivio.class);
@@ -108,8 +109,127 @@ public class Archivio {
         }
     }
 
+    //quarto metodo, ricerca per anno
+    public static List<Catalogo> cercaPerAnno(int anno){
+        return catalogo.stream()
+                .filter(e -> e.getAnnoPubblicazione() == anno)
+                .collect(Collectors.toList());
+    }
+
+    //quinto metodo, ricerca per autore libri
+    public static List<Libro> cercaPerAutore(String autore){
+        return catalogo.stream()
+                .filter(e -> e instanceof Libro)
+                .map(e -> (Libro) e)
+                .filter(l -> l.getAutore().equalsIgnoreCase(autore))
+                .collect(Collectors.toList());
+    }
+
+    //sesto metodo, aggiorna elemento
+    public static void aggiornaElemento(String isbn) throws CatalogoException {
+        Catalogo elemento = cercaPerISBN(isbn);
+
+        System.out.println("Cosa vuoi aggiornare?");
+        System.out.println("1. Titolo");
+        System.out.println("2. Anno");
+        System.out.println("3. Numero pagine");
+
+        if (elemento instanceof Libro) {
+            System.out.println("4. Autore");
+            System.out.println("5. Genere");
+        } else if (elemento instanceof Rivista) {
+            System.out.println("4. Periodicità");
+        }
+
+        int scelta = scanner.nextInt();
+        scanner.nextLine();
+
+        switch (scelta) {
+            case 1:
+                System.out.println("Inserisci nuovo titolo");
+                elemento.setTitolo(scanner.nextLine());
+                break;
+            case 2:
+                System.out.println("Inserisci nuovo anno");
+                elemento.setAnnoPubblicazione(scanner.nextInt());
+                scanner.nextLine();
+                break;
+            case 3:
+                System.out.println("Inserisci nuovo numero pagine");
+                elemento.setNumeroPagine(scanner.nextInt());
+                scanner.nextLine();
+                break;
+            case 4:
+                if (elemento instanceof Libro) {
+                    Libro libro = (Libro) elemento;
+                    System.out.println("Inserisci nuovo autore");
+                    libro.setAutore(scanner.nextLine());
+                } else if (elemento instanceof Rivista) {
+                    Rivista rivista = (Rivista) elemento;
+                    System.out.println("Scegli nuova periodicità (1-SETTIMANALE, 2-MENSILE, 3-SEMESTRALE)");
+                    int periodicitaScelta = scanner.nextInt();
+                    scanner.nextLine();
+                    switch (periodicitaScelta) {
+                        case 1: rivista.setPeriodicita(Periodicita.SETTIMANALE); break;
+                        case 2: rivista.setPeriodicita(Periodicita.MENSILE); break;
+                        case 3: rivista.setPeriodicita(Periodicita.SEMESTRALE); break;
+                    }
+                }
+                break;
+            case 5:
+                if (elemento instanceof Libro) {
+                    Libro libro = (Libro) elemento;
+                    System.out.println("Inserisci nuovo genere");
+                    libro.setGenere(scanner.nextLine());
+                }
+                break;
+        }
+        System.out.println("Elemento aggiornato con successo!");
+    }
 
 
+    //settimo metodo, statistiche catalogo
 
+    public static void statisticheCatalogo(){
+        try {
+            long numLibri = catalogo.stream()
+                    .filter(e -> e instanceof Libro)
+                    .count();
 
+            long numRiviste = catalogo.stream()
+                    .filter(e -> e instanceof Rivista)
+                    .count();
+
+            Catalogo elementoConPiuPagine = catalogo.stream()
+                    .max((a, b) -> Integer.compare(a.getNumeroPagine(), b.getNumeroPagine()))
+                    .orElse(null);
+
+            double mediaPagine = catalogo.stream()
+                    .mapToInt(Catalogo::getNumeroPagine)
+                    .average()
+                    .orElse(0);
+            logger.info("Generazione statistiche catalogo");
+            logger.info("Numero Libri: {}", numLibri);
+            logger.info("Numero Riviste: {}", numRiviste);
+
+            if (elementoConPiuPagine != null){
+                logger.info("Elemento con più pagine: {} (Pagine: {})",
+                        elementoConPiuPagine.getTitolo(),
+                        elementoConPiuPagine.getNumeroPagine());
+            }
+            logger.info("Media pagine: {}", mediaPagine);
+            System.out.println("Statistiche Catalogo:");
+            System.out.println("Numero Libri: " + numLibri);
+            System.out.println("Numero Riviste: " + numRiviste);
+
+            if (elementoConPiuPagine != null) {
+                System.out.println("Elemento con più pagine: " + elementoConPiuPagine.getTitolo() +
+                        " (Pagine: " + elementoConPiuPagine.getNumeroPagine() + ")");
+            }
+
+            System.out.printf("Media pagine: %.2f%n", mediaPagine);
+        } catch (Exception e) {
+            logger.error("Errore durante il calcolo delle statistiche", e);
+        }
+    }
 }
