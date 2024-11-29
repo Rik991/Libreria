@@ -17,7 +17,7 @@ public class Application {
 
         try {
             while (continua) {
-                System.out.println("\n-------- MENU UTENTE --------");
+                System.out.println("-------- MENU UTENTE --------");
                 System.out.println("1- Aggiungi Elemento");
                 System.out.println("2- Cerca per ISBN");
                 System.out.println("3- Rimuovi per ISBN");
