@@ -9,6 +9,8 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 
 public class Archivio {
+    //in archivio faccio tutti i metodi, l'esecuzione di essi avverrà nel main (Application)
+
     private static final Logger logger = LoggerFactory.getLogger(Archivio.class);
 
     private static List<Catalogo> catalogo = new ArrayList<>();

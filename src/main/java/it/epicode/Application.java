@@ -82,7 +82,7 @@ public class Application {
                 } catch (Exception e) {
                     logger.error("Errore generico: {}", e.getMessage(), e);
                     System.out.println("Si è verificato un errore: " + e.getMessage());
-                    scanner.nextLine(); // Pulisce il buffer
+                    scanner.nextLine();
                 }
             }
         } catch (Exception e) {
