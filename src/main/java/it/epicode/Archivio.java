@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -21,55 +22,101 @@ public class Archivio {
     public static void aggiungiElemento() throws CatalogoException {
         try {
             System.out.println("Cosa vuoi creare? Digita 1 per un libro o 2 per una rivista");
-            int scelta = scanner.nextInt();
-            scanner.nextLine();
+            int scelta = 0;
+            while (true) {
+                try {
+                    scelta = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+                    if (scelta != 1 && scelta != 2) {
+                        throw new InputMismatchException("Scelta non valida. Inserisci 1 o 2.");
+                    }
+                    break;
+                } catch (InputMismatchException e) {
+                    System.out.println("Errore: " + e.getMessage());
+                    System.out.println("Riprova ad inserire la tua scelta (1 per libro, 2 per rivista):");
+                    scanner.nextLine(); // Clear invalid input
+                }
+            }
+
             System.out.println("Inserisci ISBN");
             String isbn = scanner.nextLine();
             if (catalogo.stream().anyMatch(e -> e.getISBN().equals(isbn))) {
                 throw new CatalogoException("ISBN già presente in archivio, non puoi inserire due ISBN uguali!");
             }
+
             System.out.println("Inserisci il titolo");
             String titolo = scanner.nextLine();
-            System.out.println("Inserisci anno di pubblicazione");
-            int anno = scanner.nextInt();
-            scanner.nextLine();
-            System.out.println("Inserisci il numero di pagine");
-            int pagine = scanner.nextInt();
-            scanner.nextLine();
 
-            Catalogo nuovoElemento; //dichiaro nuovoElemento che può essere o libro o rivista
+            int anno = 0;
+            while (true) {
+                try {
+                    System.out.println("Inserisci anno di pubblicazione");
+                    anno = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+                    break;
+                } catch (InputMismatchException e) {
+                    System.out.println("Errore: Inserisci un anno valido (numero intero)");
+                    scanner.nextLine(); // Clear invalid input
+                }
+            }
 
-            if (scelta == 1) { //se è un libro mettiamo autore e genere
+            int pagine = 0;
+            while (true) {
+                try {
+                    System.out.println("Inserisci il numero di pagine");
+                    pagine = scanner.nextInt();
+                    scanner.nextLine(); // Consume newline
+                    break;
+                } catch (InputMismatchException e) {
+                    System.out.println("Errore: Inserisci un numero valido di pagine (numero intero)");
+                    scanner.nextLine(); // Clear invalid input
+                }
+            }
+
+            Catalogo nuovoElemento; // dichiaro nuovoElemento che può essere o libro o rivista
+
+            if (scelta == 1) { // se è un libro mettiamo autore e genere
                 System.out.println("Inserisci autore");
                 String autore = scanner.nextLine();
                 System.out.println("Inserisci genere");
                 String genere = scanner.nextLine();
 
-                nuovoElemento = new Libro(anno, isbn, titolo, pagine, autore, genere); //assegno a nuovoElemento la classe Libro
-            } else if (scelta == 2) { //se è una rivista mettiamo la periodicità
+                nuovoElemento = new Libro(anno, isbn, titolo, pagine, autore, genere); // assegno a nuovoElemento la classe Libro
+            } else { // se è una rivista mettiamo la periodicità
                 System.out.println("Con quale periodicità verrà pubblicata la rivista? 1-SETTIMANALE, 2-MENSILE, 3-SEMESTRALE");
-                int periodicitaScelta = scanner.nextInt();
-                scanner.nextLine();
-                Periodicita periodicita;
-                switch (periodicitaScelta) {
-                    case 1:
-                        periodicita = Periodicita.SETTIMANALE;
-                        break;
-                    case 2:
-                        periodicita = Periodicita.MENSILE;
-                        break;
-                    case 3:
-                        periodicita = Periodicita.SEMESTRALE;
-                        break;
-                    default:
-                        throw new CatalogoException("Periodicità non valida");
+
+                Periodicita periodicita = null;
+                while (periodicita == null) {
+                    try {
+                        int periodicitaScelta = scanner.nextInt();
+                        scanner.nextLine();
+
+                        switch (periodicitaScelta) {
+                            case 1:
+                                periodicita = Periodicita.SETTIMANALE;
+                                break;
+                            case 2:
+                                periodicita = Periodicita.MENSILE;
+                                break;
+                            case 3:
+                                periodicita = Periodicita.SEMESTRALE;
+                                break;
+                            default:
+                                throw new CatalogoException("Periodicità non valida. Inserisci 1, 2 o 3.");
+                        }
+                    } catch (InputMismatchException | CatalogoException e) {
+                        System.out.println("Errore: " + e.getMessage());
+                        System.out.println("Riprova a inserire la periodicità (1-SETTIMANALE, 2-MENSILE, 3-SEMESTRALE):");
+                        scanner.nextLine();
+                    }
                 }
-                nuovoElemento = new Rivista(anno, isbn, titolo, pagine, periodicita); //qui assegniamo la rivista a nuovoElemento
-            } else {
-                throw  new CatalogoException("Scelta non valida");
+
+                nuovoElemento = new Rivista(anno, isbn, titolo, pagine, periodicita); // qui assegniamo la rivista a nuovoElemento
             }
-            catalogo.add(nuovoElemento); //aggiungo quindi l'elemento al catalogo
+
+            catalogo.add(nuovoElemento); // aggiungo quindi l'elemento al catalogo
             logger.info("Nuovo elemento aggiunto con ISBN: {}", isbn);
+            System.out.println("Elemento aggiunto con successo!");
         } catch (CatalogoException e) {
             logger.error("Errore durante l'aggiunta dell'elemento: {}", e.getMessage(), e);
             throw e;
